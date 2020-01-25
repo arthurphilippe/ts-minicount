@@ -1,6 +1,6 @@
 import * as telegraf from "telegraf";
 
-import Account, { Accounts } from "./Account";
+import Account, * as account from "./Account";
 
 interface Operations {
     name: string;
@@ -32,7 +32,7 @@ class Db {
         if (!this.client.isConnected()) {
             throw "db middware cannot be used without being connected.";
         }
-        ctx.accounts = new Accounts(this.db);
+        ctx.accounts = new account.Accounts(this.db);
         next();
     }
 }
@@ -46,9 +46,19 @@ class Db {
     });
     bot.use(telegraf.session<myContext>());
     bot.use(scene.stage.middleware());
-    bot.command("createAccount", (ctx) => ctx.scene.enter("createAccount"));
-    bot.command("greeter", (ctx) => ctx.scene.enter("greeter"));
-    bot.command("voiture", (ctx) => ctx.reply("J'aime le voiture"));
+
+    bot.command("createaccount", (ctx) => ctx.scene.enter("createAccount"));
+
+    bot.command("newoperation", (ctx) => ctx.scene.enter("newOperation"));
+
+    bot.command("showaccounts", async (ctx) =>
+        ctx.reply(await account.listAllByRef(ctx.accounts, ctx.message.chat.id))
+    );
+
     console.log("Ready...");
+    bot.catch((err: any) => {
+        console.error(err);
+        db.client.close();
+    });
     bot.startPolling();
 })();

@@ -1,4 +1,4 @@
-import Account, { Accounts } from "./../Account";
+import Account from "./../Account";
 import myContext from "../Context";
 import * as telegraf from "telegraf";
 
@@ -77,6 +77,7 @@ function parseTypicalOp(account: Account, ctx: myContext): string[] {
 // createAccount.command("done", telegraf.Stage.leave);
 createAccount.command("done", async (ctx) => {
     let account = ctx.scene.session.state as Account;
+    account.referenceId = ctx.chat.id;
 
     try {
         await ctx.accounts.collection.insertOne(account);

@@ -1,6 +1,7 @@
 import * as telegraf from "telegraf";
 import myContext from "../Context";
 import createAccount from "./createAccount";
+import newOperation from "./newOperation";
 
 let greeter = new telegraf.BaseScene<myContext>("greeter");
 greeter.enter((ctx) => {
@@ -15,7 +16,7 @@ greeter.hears(/hi/gi, (ctx) => {
     ctx.scene.leave();
 });
 
-export let stage = new telegraf.Stage([greeter, createAccount]);
+export let stage = new telegraf.Stage([greeter, createAccount, newOperation]);
 
 stage.command("back", (ctx) => {
     ctx.scene.leave();
