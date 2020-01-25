@@ -1,6 +1,8 @@
 import * as mongodb from "mongodb";
 
+// TODO: link account with user or chat
 export default interface Account {
+    _id: mongodb.ObjectID;
     name: string;
     balance: number;
     typicalOperations?: {

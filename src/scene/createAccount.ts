@@ -10,6 +10,8 @@ createAccount.enter((ctx) =>
     ctx.reply("Alright, let's open a new account!\nHow do you want to call it?")
 );
 
+createAccount.leave((ctx) => ctx.reply("Leaving account creation."));
+
 function parseAccountName(account: Account, ctx: myContext): string[] {
     let builder: string[] = [];
     account.name = ctx.message.text;
@@ -72,6 +74,22 @@ function parseTypicalOp(account: Account, ctx: myContext): string[] {
     return builder;
 }
 
+// createAccount.command("done", telegraf.Stage.leave);
+createAccount.command("done", async (ctx) => {
+    let account = ctx.scene.session.state as Account;
+
+    try {
+        await ctx.accounts.collection.insertOne(account);
+        ctx.reply("Account saved!");
+        ctx.scene.leave();
+    } catch (err) {
+        console.error(err);
+        ctx.reply(
+            "Something went wrong when saving that new account...\nYou can still retry with /done or go /back."
+        );
+    }
+});
+
 createAccount.on("text", (ctx) => {
     let account = ctx.scene.session.state as Account;
     let builder: string[];
@@ -85,6 +103,3 @@ createAccount.on("text", (ctx) => {
     ctx.scene.session.state = account;
     return ctx.reply(builder.join("\n"));
 });
-
-// createAccount.command("done", telegraf.Stage.leave);
-createAccount.command("done", (ctx) => {});
