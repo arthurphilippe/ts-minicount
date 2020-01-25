@@ -1,6 +1,7 @@
 import Account from "./../Account";
 import myContext from "../Context";
 import * as telegraf from "telegraf";
+import * as currency from "currency.js";
 
 let newOperation = new telegraf.BaseScene<myContext>("newOperation");
 
@@ -52,13 +53,16 @@ newOperation.hears(/^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$/, async (ctx, next) =>
     }
     let account = ctx.scene.session.state as Account;
 
+    let newBal = currency(account.balance).add(ctx.message.text);
+
     let result = await ctx.accounts.collection.findOneAndUpdate(
         { name: account.name },
-        { $inc: { balance: parseFloat(ctx.message.text) } }
+        { $set: { balance: newBal.value } },
+        { returnOriginal: false }
     );
     if (result.ok) {
-        let account = result.value;
-        ctx.reply(`Balance for ${account.name} is now ${account.balance}`);
+        let editedAccount = result.value;
+        ctx.reply(`Balance for ${editedAccount.name} is now ${editedAccount.balance}`);
         ctx.scene.leave();
     } else {
         ctx.reply(`Error while trying to apply operation.`);
@@ -75,7 +79,6 @@ async function selectAccount(ctx: myContext) {
         ctx.scene.leave();
         return;
     }
-    console.log("selected");
     ctx.scene.session.state = account;
     let buttons = [];
     if (account.typicalOperations) {
@@ -103,7 +106,7 @@ async function selectTypicalOp(ctx: myContext) {
     let op: {
         name: string;
         value: number;
-    };
+    } = undefined;
     if (!account.typicalOperations) {
         ctx.reply("No typical operations for " + account.name);
         return;
@@ -112,13 +115,23 @@ async function selectTypicalOp(ctx: myContext) {
         if (element.name == name) op = element;
     });
 
+    if (!op) {
+        ctx.reply(
+            "This doesn't look like a number or an operation name.\nFeel free to retry or to go /back."
+        );
+        return;
+    }
+    let newBal = currency(account.balance).add(op.value);
+    // if (op) += op.value;
+
     let result = await ctx.accounts.collection.findOneAndUpdate(
         { name: account.name },
-        { $inc: { balance: op.value } }
+        { $set: { balance: newBal.value } },
+        { returnOriginal: false }
     );
     if (result.ok) {
-        let account = result.value;
-        ctx.reply(`Balance for ${account.name} is now ${account.balance}`);
+        let editedAccount = result.value;
+        ctx.reply(`Balance for ${editedAccount.name} is now ${editedAccount.balance}`);
         ctx.scene.leave();
     } else {
         ctx.reply(`Error while trying to apply operation.`);

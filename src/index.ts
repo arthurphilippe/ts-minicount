@@ -47,13 +47,19 @@ class Db {
     bot.use(telegraf.session<myContext>());
     bot.use(scene.stage.middleware());
 
-    bot.command("createaccount", (ctx) => ctx.scene.enter("createAccount"));
+    bot.command("newaccount", (ctx) => ctx.scene.enter("createAccount"));
 
     bot.command("newoperation", (ctx) => ctx.scene.enter("newOperation"));
 
-    bot.command("showaccounts", async (ctx) =>
+    bot.command("editaccount", (ctx) => ctx.scene.enter("editAccount"));
+
+    bot.command("listaccounts", async (ctx) =>
         ctx.reply(await account.listAllByRef(ctx.accounts, ctx.message.chat.id))
     );
+
+    bot.on("message", (ctx) => {
+        ctx.reply("Not sure what you are trying to do... Have a look at available commands.");
+    });
 
     console.log("Ready...");
     bot.catch((err: any) => {

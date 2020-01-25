@@ -15,6 +15,7 @@
         "typescript": "^3.7.5"
     },
     "dependencies": {
+        "currency.js": "^1.2.2",
         "mongodb": "^3.5.2",
         "telegraf": "^3.36.0"
     }
