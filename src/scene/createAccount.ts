@@ -28,7 +28,7 @@ function parseAccountName(account: Account, ctx: myContext): string[] {
 function parseAccountBalance(account: Account, ctx: myContext): string[] {
     let builder: string[] = [];
     account.balance = parseFloat(ctx.message.text.split(" ", 1)[0]);
-    if (account.balance !== undefined && !isNaN(account.balance)) {
+    if (!isNaN(account.balance)) {
         builder.push(
             `Balance for ${account.name} is now ${account.balance.toFixed(2)}.`,
             `You can now say /done or tell me the kind of recuring operation to expect on this account.`,
@@ -57,7 +57,7 @@ function parseTypicalOp(account: Account, ctx: myContext): string[] {
     } else {
         let valueStr = opNameAndValue[1].split(" ");
         let value = parseFloat(valueStr[valueStr.length - 1]);
-        if (value !== undefined && !isNaN(value)) {
+        if (!isNaN(value)) {
             if (!account.typicalOperations) {
                 account.typicalOperations = [];
             }
