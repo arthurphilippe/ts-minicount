@@ -1,6 +1,7 @@
 import * as telegraf from "telegraf";
+import * as tt from "telegraf/typings";
 
-import Account, * as account from "./Account";
+import Crate, * as crate from "./Crate";
 
 interface Operations {
     name: string;
@@ -9,10 +10,12 @@ interface Operations {
 }
 
 import myContext from "./Context";
+import InlineQuery from "./InlineQuery";
 
-import * as scene from "./scene";
+import * as account from "./account";
 
 import * as mongodb from "mongodb";
+
 class Db {
     client: mongodb.MongoClient;
     db: mongodb.Db;
@@ -33,6 +36,7 @@ class Db {
             throw "db middware cannot be used without being connected.";
         }
         ctx.accounts = new account.Accounts(this.db);
+        ctx.crates = new crate.Crates(this.db);
         next();
     }
 }
@@ -45,20 +49,38 @@ class Db {
         db.middleware(ctx, next);
     });
     bot.use(telegraf.session<myContext>());
-    bot.use(scene.stage.middleware());
+    bot.use(account.stage.middleware());
 
     bot.command("newaccount", (ctx) => ctx.scene.enter("createAccount"));
-
     bot.command("newoperation", (ctx) => ctx.scene.enter("newOperation"));
-
     bot.command("editaccount", (ctx) => ctx.scene.enter("editAccount"));
-
     bot.command("listaccounts", async (ctx) =>
         ctx.reply(await account.listAllByRef(ctx.accounts, ctx.message.chat.id))
     );
 
+    bot.command("newcrate", (ctx) => {
+        ctx.scene.enter("newCrate");
+    });
+    bot.command("deletecrate", (ctx) => {
+        ctx.scene.enter("deleteCrate");
+    });
+
+    bot.on("inline_query", InlineQuery);
+
+    bot.on("callback_query", (ctx) => {
+        console.log("callbackquery");
+        ctx.editMessageText("voiture");
+    });
+
+    bot.on("chosen_inline_result", (ctx) => {
+        console.log("chosen");
+        // ctx.reply("no idea");
+    });
+
     bot.on("message", (ctx) => {
+        // ctx.message.fo
         ctx.reply("Not sure what you are trying to do... Have a look at available commands.");
+        // bot.telegram.forwardMessage()
     });
 
     console.log("Ready...");

@@ -1,4 +1,4 @@
-import Account from "./../Account";
+import Account from "./Account";
 import myContext from "../Context";
 import * as telegraf from "telegraf";
 
