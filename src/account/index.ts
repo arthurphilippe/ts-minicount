@@ -1,8 +1,5 @@
 import * as telegraf from "telegraf";
 import myContext from "../Context";
-import createAccount from "./createAccount";
-import newOperation from "./newOperation";
-import editAccount from "./editAccount";
 
 let greeter = new telegraf.BaseScene<myContext>("greeter");
 greeter.enter((ctx) => {
@@ -16,6 +13,10 @@ greeter.leave((ctx) => {
 greeter.hears(/hi/gi, (ctx) => {
     ctx.scene.leave();
 });
+
+import createAccount from "./sceneCreateAccount";
+import newOperation from "./sceneNewOperation";
+import editAccount from "./sceneEditAccount";
 
 export let stage = new telegraf.Stage([greeter, createAccount, newOperation, editAccount]);
 

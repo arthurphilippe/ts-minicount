@@ -25,6 +25,7 @@ function parseAccountName(account: Account, ctx: myContext): string[] {
     }
     return builder;
 }
+
 function parseAccountBalance(account: Account, ctx: myContext): string[] {
     let builder: string[] = [];
     account.balance = parseFloat(ctx.message.text.split(" ", 1)[0]);
