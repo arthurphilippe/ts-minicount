@@ -13,6 +13,7 @@ import myContext from "./Context";
 import InlineQuery from "./InlineQuery";
 
 import * as account from "./account";
+import * as input from "./input";
 
 import * as mongodb from "mongodb";
 
@@ -48,8 +49,17 @@ class Db {
     bot.use((ctx, next) => {
         db.middleware(ctx, next);
     });
+
+    let stage = new telegraf.Stage([]);
+    account.register(stage);
+    input.register(stage);
+
+    stage.command("cancel", (ctx) => {
+        ctx.scene.leave();
+    });
+
     bot.use(telegraf.session<myContext>());
-    bot.use(account.stage.middleware());
+    bot.use(stage.middleware());
 
     bot.command("newaccount", (ctx) => ctx.scene.enter("createAccount"));
     bot.command("newoperation", (ctx) => ctx.scene.enter("newOperation"));

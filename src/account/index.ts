@@ -18,6 +18,10 @@ import createAccount from "./sceneCreateAccount";
 import newOperation from "./sceneNewOperation";
 import editAccount from "./sceneEditAccount";
 
+export function register(stage: telegraf.Stage<any>) {
+    stage.register(greeter, createAccount, newOperation, editAccount);
+}
+
 export let stage = new telegraf.Stage([greeter, createAccount, newOperation, editAccount]);
 
 stage.command("back", (ctx) => {

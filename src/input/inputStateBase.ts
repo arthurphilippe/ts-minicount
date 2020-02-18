@@ -1,9 +1,12 @@
-import * as telegraf from "telegraf";
 import Replies from "./Replies";
 
-export default interface inputContextBase extends telegraf.SceneContextMessageUpdate {
+export default interface inputStateBase {
     resolve: (arg0: any) => void;
     reject: (err: any) => void;
     allowRetry: boolean;
     replies: Replies;
+    old: {
+        state: any;
+        id: string;
+    };
 }

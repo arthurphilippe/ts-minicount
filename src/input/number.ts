@@ -1,14 +1,14 @@
 import * as telegraf from "telegraf";
 import myContext from "../Context";
 import Replies from "./Replies";
-import inputContextBase from "./inputContextBase";
+import inputStateBase from "./inputStateBase";
 
-interface inputContext extends inputContextBase {
+interface inputState extends inputStateBase {
     type: "INT" | "FLOAT";
 }
 
 export default function number(
-    this: myContext,
+    ctx: myContext,
     type: "INT" | "FLOAT",
     allowRetry: boolean = false,
     replies: Replies = {
@@ -18,35 +18,46 @@ export default function number(
     }
 ): Promise<number> {
     return new Promise<number>((resolve, reject) => {
-        let ctx: Partial<inputContext> = {
+        let scn_ctx: Partial<inputState> = {
             resolve,
             reject,
             replies: replies,
             allowRetry,
             type,
+            old: {
+                state: ctx.scene.state,
+                id: ctx.scene.session.current,
+            },
         };
 
-        this.scene.enter("inputNumber", ctx);
+        ctx.scene.enter("inputNumber", scn_ctx);
     });
 }
 
-let scene = new telegraf.BaseScene<inputContext>("inputNumber");
+export let scene = new telegraf.BaseScene<myContext>("inputNumber");
+scene.leave((ctx) => {
+    ctx.reply("leaving number");
+});
 
 scene.enter((ctx) => {
-    if (ctx.replies.question) ctx.reply(ctx.replies.question);
+    let state = ctx.scene.state as inputState;
+
+    if (state.replies.question) ctx.reply(state.replies.question);
 });
 
 scene.hears(/^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$/, async (ctx) => {
-    let value = ctx.type === "FLOAT" ? parseFloat(ctx.message.text) : parseInt(ctx.message.text);
+    let state = ctx.scene.state as inputState;
+
+    let value = state.type === "FLOAT" ? parseFloat(ctx.message.text) : parseInt(ctx.message.text);
     if (isNaN(value)) {
-        ctx.reply(ctx.replies.failure);
-        if (ctx.allowRetry) ctx.reply("You may retry or /cancel.");
+        ctx.reply(state.replies.failure);
+        if (state.allowRetry) ctx.reply("You may retry or /cancel.");
         else {
             ctx.scene.leave();
-            ctx.reject(new Error("Not a number"));
+            state.reject(new Error("Not a number"));
         }
     } else {
         ctx.scene.leave();
-        ctx.resolve(value);
+        state.resolve(value);
     }
 });

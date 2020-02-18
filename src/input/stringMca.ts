@@ -1,15 +1,15 @@
 import * as telegraf from "telegraf";
 import myContext from "../Context";
 import Replies from "./Replies";
-import inputContextBase from "./inputContextBase";
+import inputStateBase from "./inputStateBase";
 
-interface inputContext extends inputContextBase {
+interface inputState extends inputStateBase {
     choices: string[];
     allowIncorrect: boolean;
 }
 
 export default function stringMca(
-    this: myContext,
+    ctx: myContext,
     choices: string[],
     allowIncorrect: boolean = false,
     allowRetry: boolean = false,
@@ -20,41 +20,57 @@ export default function stringMca(
     }
 ): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-        let ctx: Partial<inputContext> = {
+        let scn_ctx: Partial<inputState> = {
             resolve,
             reject,
-            replies: replies,
+            replies,
             allowRetry,
             allowIncorrect,
             choices,
+            old: {
+                state: ctx.scene.state,
+                id: ctx.scene.session.current,
+            },
         };
 
-        this.scene.enter("inputMca", ctx);
+        ctx.scene.enter("inputMca", scn_ctx);
     });
 }
 
-let scene = new telegraf.BaseScene<inputContext>("inputMca");
+export let scene = new telegraf.BaseScene<myContext>("inputMca");
 
 scene.enter((ctx) => {
+    ctx.reply("Entering mca");
+
+    let state = ctx.scene.state as inputState;
     ctx.reply(
-        ctx.replies.question,
-        telegraf.Markup.keyboard(ctx.choices)
+        state.replies.question,
+        telegraf.Markup.keyboard(state.choices)
             .oneTime()
             .resize()
             .extra()
     );
 });
 
+scene.leave((ctx) => {
+    ctx.reply("leaving mca");
+    let state = ctx.scene.state as inputState;
+
+    ctx.scene.enter(state.old.id, state.old.state);
+});
+
 scene.on("message", (ctx) => {
-    if (ctx.allowIncorrect || ctx.message.text in ctx.choices) {
-        if (ctx.replies.success) ctx.reply(ctx.replies.success);
+    let state = ctx.scene.state as inputState;
+
+    if (state.allowIncorrect || ctx.message.text in state.choices) {
+        if (state.replies.success) ctx.reply(state.replies.success);
         ctx.scene.leave();
-        ctx.resolve(ctx.message);
+        state.resolve(ctx.message);
     } else {
-        ctx.reply(ctx.replies.failure);
-        if (!ctx.allowRetry) {
+        ctx.reply(state.replies.failure);
+        if (!state.allowRetry) {
             ctx.scene.leave();
-            ctx.reject(new Error("String not in choices."));
+            state.reject(new Error("String not in choices."));
         } else {
             ctx.reply("You may retry or /cancel.");
         }

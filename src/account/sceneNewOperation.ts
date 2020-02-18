@@ -2,8 +2,10 @@ import Account from "./Account";
 import myContext from "../Context";
 import * as telegraf from "telegraf";
 import * as currency from "currency.js";
+import * as input from "../input";
 
-let newOperation = new telegraf.BaseScene<myContext>("newOperation");
+let sceneId = "newOperation";
+let newOperation = new telegraf.BaseScene<myContext>(sceneId);
 
 export default newOperation;
 
@@ -33,14 +35,45 @@ newOperation.enter(async (ctx) => {
         accs_names.push(elem.name);
     });
 
-    ctx.scene.session.state = undefined;
-    return ctx.reply(
-        "Chose account to perform operation on:",
-        telegraf.Markup.keyboard(accs_names)
-            .oneTime()
-            .resize()
-            .extra()
-    );
+    let chosen_account = await input.stringMca(ctx, accs_names, false, false, {
+        question: "Chose account to perform operation on:",
+        failure: "I'm not sure which access you are trying to access...",
+        success: "",
+    });
+
+    let account = await ctx.accounts.collection.findOne({ name: chosen_account });
+    if (!account) {
+        ctx.reply("Something went wrong while retrieving the account.");
+        ctx.scene.leave();
+        return;
+    }
+    ctx.scene.session.state = account;
+
+    let buttons = [];
+    if (account.typicalOperations) {
+        account.typicalOperations.forEach((typicalOp) => {
+            let button = telegraf.Markup.callbackButton(typicalOp.name, typicalOp.value.toString());
+            buttons.push(button);
+        });
+        ctx.reply(
+            "Chose from a typical operation or type in a value.",
+            telegraf.Markup.keyboard(buttons)
+                .oneTime()
+                .resize()
+                .extra()
+        );
+    } else {
+        ctx.reply("How much was it? (Use negative values for expenses and positive for income.)");
+    }
+
+    // ctx.scene.session.state = undefined;
+    // return ctx.reply(
+    //     "Chose account to perform operation on:",
+    //     telegraf.Markup.keyboard(accs_names)
+    //         .oneTime()
+    //         .resize()
+    //         .extra()
+    // );
 });
 
 newOperation.leave((ctx) => {
