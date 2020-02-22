@@ -3,7 +3,7 @@ import stringMca, { scene as sceneInputStringMca } from "./stringMca";
 
 export { number, stringMca };
 
-import * as telegraf from "telegraf";
+import * as telegraf from "telegraf_acp_fork";
 
 export function register(stage: telegraf.Stage<any>) {
     stage.register(sceneInputNumber, sceneInputStringMca);

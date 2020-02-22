@@ -1,5 +1,5 @@
 export default interface Replies {
-    success: string;
-    failure: string;
-    question: string;
+    success?: string;
+    failure?: string;
+    question?: string;
 }

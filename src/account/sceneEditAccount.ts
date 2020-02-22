@@ -1,6 +1,6 @@
 import Account from "./Account";
 import myContext from "../Context";
-import * as telegraf from "telegraf";
+import * as telegraf from "telegraf_acp_fork";
 
 let scene = new telegraf.BaseScene<myContext>("editAccount");
 

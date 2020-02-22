@@ -1,4 +1,4 @@
-import * as telegraf from "telegraf";
+import * as telegraf from "telegraf_acp_fork";
 import myContext from "../Context";
 import Replies from "./Replies";
 import inputStateBase from "./inputStateBase";
@@ -24,13 +24,9 @@ export default function number(
             replies: replies,
             allowRetry,
             type,
-            old: {
-                state: ctx.scene.state,
-                id: ctx.scene.session.current,
-            },
         };
 
-        ctx.scene.enter("inputNumber", scn_ctx);
+        ctx.scene.enter("inputNumber", scn_ctx, false, true);
     });
 }
 

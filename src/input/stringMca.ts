@@ -1,4 +1,4 @@
-import * as telegraf from "telegraf";
+import * as telegraf from "telegraf_acp_fork";
 import myContext from "../Context";
 import Replies from "./Replies";
 import inputStateBase from "./inputStateBase";
@@ -14,9 +14,9 @@ export default function stringMca(
     allowIncorrect: boolean = false,
     allowRetry: boolean = false,
     replies: Replies = {
-        success: "Number received",
-        failure: "Failed to understand given number.",
-        question: "Input a number:",
+        success: "String from multiple choices OK",
+        failure: "String from multiple choices NOK",
+        question: "Input a from keyboard:",
     }
 ): Promise<string> {
     return new Promise<string>((resolve, reject) => {
@@ -27,13 +27,9 @@ export default function stringMca(
             allowRetry,
             allowIncorrect,
             choices,
-            old: {
-                state: ctx.scene.state,
-                id: ctx.scene.session.current,
-            },
         };
 
-        ctx.scene.enter("inputMca", scn_ctx);
+        ctx.scene.enter("inputMca", scn_ctx, false, true);
     });
 }
 
@@ -55,17 +51,22 @@ scene.enter((ctx) => {
 scene.leave((ctx) => {
     ctx.reply("leaving mca");
     let state = ctx.scene.state as inputState;
-
-    ctx.scene.enter(state.old.id, state.old.state);
 });
 
-scene.on("message", (ctx) => {
+scene.on("text", (ctx) => {
     let state = ctx.scene.state as inputState;
 
-    if (state.allowIncorrect || ctx.message.text in state.choices) {
+    let match = false;
+    state.choices.forEach((choice) => {
+        if (!match && choice.includes(ctx.message.text)) {
+            match = true;
+        }
+    });
+
+    if (state.allowIncorrect || match) {
         if (state.replies.success) ctx.reply(state.replies.success);
         ctx.scene.leave();
-        state.resolve(ctx.message);
+        state.resolve(ctx.message.text);
     } else {
         ctx.reply(state.replies.failure);
         if (!state.allowRetry) {

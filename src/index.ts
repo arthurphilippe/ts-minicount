@@ -1,4 +1,4 @@
-import * as telegraf from "telegraf";
+import * as telegraf from "telegraf_acp_fork";
 import * as tt from "telegraf/typings";
 
 import Crate, * as crate from "./Crate";
@@ -60,7 +60,6 @@ class Db {
 
     bot.use(telegraf.session<myContext>());
     bot.use(stage.middleware());
-
     bot.command("newaccount", (ctx) => ctx.scene.enter("createAccount"));
     bot.command("newoperation", (ctx) => ctx.scene.enter("newOperation"));
     bot.command("editaccount", (ctx) => ctx.scene.enter("editAccount"));
@@ -90,6 +89,7 @@ class Db {
     bot.on("message", (ctx) => {
         // ctx.message.fo
         ctx.reply("Not sure what you are trying to do... Have a look at available commands.");
+        ctx.reply(`you are in ${ctx.scene.session.current}`);
         // bot.telegram.forwardMessage()
     });
 

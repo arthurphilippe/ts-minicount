@@ -5,8 +5,4 @@ export default interface inputStateBase {
     reject: (err: any) => void;
     allowRetry: boolean;
     replies: Replies;
-    old: {
-        state: any;
-        id: string;
-    };
 }

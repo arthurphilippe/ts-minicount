@@ -1,4 +1,4 @@
-import * as telegraf from "telegraf";
+import * as telegraf from "telegraf_acp_fork";
 import myContext from "../Context";
 
 let greeter = new telegraf.BaseScene<myContext>("greeter");

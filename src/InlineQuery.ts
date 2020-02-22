@@ -1,5 +1,5 @@
 import myContext from "./Context";
-import * as telegraf from "telegraf";
+import * as telegraf from "telegraf_acp_fork";
 import { InlineQueryResultArticle } from "telegraf/typings/telegram-types";
 // import { Crates } from "./Crate";
 

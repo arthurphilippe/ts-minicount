@@ -11,6 +11,10 @@ export default interface Account {
     }[];
 }
 
+export function isAccount(x: any): x is Account {
+    return x.name !== undefined && x.balance !== undefined && x.referenceId !== undefined;
+}
+
 export function toSimpleString(acc: Account): string {
     return `- ${acc.name}: ${acc.balance}`;
 }
