@@ -16,7 +16,7 @@ export default function stringMca(
     replies: Replies = {
         success: "String from multiple choices OK",
         failure: "String from multiple choices NOK",
-        question: "Input a from keyboard:",
+        question: "Input a from keyboard.",
     }
 ): Promise<string> {
     return new Promise<string>((resolve, reject) => {
@@ -68,7 +68,7 @@ scene.on("text", (ctx) => {
         ctx.scene.leave();
         state.resolve(ctx.message.text);
     } else {
-        ctx.reply(state.replies.failure);
+        if (state.replies.failure) ctx.reply(state.replies.failure);
         if (!state.allowRetry) {
             ctx.scene.leave();
             state.reject(new Error("String not in choices."));

@@ -2,37 +2,14 @@ import Account, { isAccount } from "./Account";
 import myContext from "../Context";
 import * as telegraf from "telegraf_acp_fork";
 import * as currency from "currency.js";
-import * as input from "../input";
+import { getAccountNames } from "./getAccountNames";
+import { askForAccountName } from "./askForAccountName";
+import { replyAndLeave } from "../replyAndLeave";
 
 let sceneId = "newOperation";
 let newOperation = new telegraf.BaseScene<myContext>(sceneId);
 
 export default newOperation;
-
-async function getAccountNames(ctx: myContext): Promise<string[]> {
-    let cursor = ctx.accounts.collection.find(
-        { referenceId: ctx.chat.id },
-        { projection: { name: 1 } }
-    );
-    const accs = await cursor.toArray();
-    if (!accs.length)
-        throw Error(
-            "You need to create an account before trying to access one. You can use /createaccount."
-        );
-    let accs_names: string[] = [];
-    accs.forEach((elem) => {
-        accs_names.push(elem.name);
-    });
-    return accs_names;
-}
-
-function askForAccountName(ctx: myContext, accs_names: string[]): Promise<string> {
-    return input.stringMca(ctx, accs_names, false, false, {
-        question: "Do tell, on what account do you wish to add an operation?",
-        failure: "I'm not sure which account you are trying to access...",
-        success: "",
-    });
-}
 
 async function fetchAccount(ctx: myContext, acc: string): Promise<Account> {
     try {
@@ -45,11 +22,6 @@ async function fetchAccount(ctx: myContext, acc: string): Promise<Account> {
     } catch (err) {
         throw new Error("I may have some issues with my database.");
     }
-}
-
-function replyAndLeave(ctx: myContext, err: Error) {
-    ctx.reply(err.message);
-    ctx.scene.leave();
 }
 
 function askForOperation(ctx: myContext, account: Account) {
@@ -85,7 +57,6 @@ newOperation.enter((ctx) => {
                         });
                 });
         });
-    console.log("3");
 });
 
 async function applyOperationChange(ctx: myContext, value: number) {
@@ -109,7 +80,6 @@ async function applyOperationChange(ctx: myContext, value: number) {
 }
 
 newOperation.hears(/^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$/, async (ctx, next) => {
-    console.log("1");
     if (!isAccount(ctx.scene.state)) {
         next();
     }
@@ -144,7 +114,6 @@ async function selectTypicalOp(ctx: myContext) {
 }
 
 newOperation.on("text", (ctx) => {
-    console.log("2");
     if (!isAccount(ctx.scene.state)) {
         ctx.reply("Account has not yet been selected. An error may have occured.");
     }

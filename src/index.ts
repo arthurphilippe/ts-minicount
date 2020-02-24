@@ -1,7 +1,4 @@
 import * as telegraf from "telegraf_acp_fork";
-import * as tt from "telegraf/typings";
-
-import Crate, * as crate from "./Crate";
 
 interface Operations {
     name: string;
@@ -14,33 +11,9 @@ import InlineQuery from "./InlineQuery";
 
 import * as account from "./account";
 import * as input from "./input";
+import * as task from "./task";
 
-import * as mongodb from "mongodb";
-
-class Db {
-    client: mongodb.MongoClient;
-    db: mongodb.Db;
-
-    constructor() {
-        this.client = new mongodb.MongoClient("mongodb://root:example@localhost", {
-            useUnifiedTopology: true,
-        });
-    }
-
-    public async start() {
-        this.client = await this.client.connect();
-        this.db = this.client.db("minicount");
-        return;
-    }
-    public middleware<TContext extends myContext>(ctx: TContext, next: Function) {
-        if (!this.client.isConnected()) {
-            throw "db middware cannot be used without being connected.";
-        }
-        ctx.accounts = new account.Accounts(this.db);
-        ctx.crates = new crate.Crates(this.db);
-        next();
-    }
-}
+import Db from "./Db";
 
 (async () => {
     let bot = new telegraf.default<myContext>(process.env.BOT_TOKEN);
@@ -48,14 +21,32 @@ class Db {
     await db.start();
     bot.use((ctx, next) => {
         db.middleware(ctx, next);
+        ctx.taskSceduler = new task.Scheduler(ctx.telegram, db);
+        ctx.taskSceduler.schedule();
     });
+
+    bot.on(
+        "callback_query",
+        (ctx, next) => {
+            console.log("callbackquery");
+            ctx.splitCb = ctx.callbackQuery.data.split(";");
+            next();
+        },
+        task.cb
+    );
 
     let stage = new telegraf.Stage([]);
     account.register(stage);
     input.register(stage);
+    task.register(stage);
 
     stage.command("cancel", (ctx) => {
         ctx.scene.leave();
+    });
+
+    bot.on("chosen_inline_result", (ctx) => {
+        console.log("chosen");
+        // ctx.reply("no idea");
     });
 
     bot.use(telegraf.session<myContext>());
@@ -67,6 +58,8 @@ class Db {
         ctx.reply(await account.listAllByRef(ctx.accounts, ctx.message.chat.id))
     );
 
+    bot.command("newtask", (ctx) => ctx.scene.enter("createTask"));
+
     bot.command("newcrate", (ctx) => {
         ctx.scene.enter("newCrate");
     });
@@ -75,16 +68,6 @@ class Db {
     });
 
     bot.on("inline_query", InlineQuery);
-
-    bot.on("callback_query", (ctx) => {
-        console.log("callbackquery");
-        ctx.editMessageText("voiture");
-    });
-
-    bot.on("chosen_inline_result", (ctx) => {
-        console.log("chosen");
-        // ctx.reply("no idea");
-    });
 
     bot.on("message", (ctx) => {
         // ctx.message.fo

@@ -14,7 +14,7 @@ export default function number(
     replies: Replies = {
         success: "Number received",
         failure: "Failed to understand given number.",
-        question: "Input a number:",
+        question: "Input a number.",
     }
 ): Promise<number> {
     return new Promise<number>((resolve, reject) => {
@@ -46,7 +46,7 @@ scene.hears(/^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$/, async (ctx) => {
 
     let value = state.type === "FLOAT" ? parseFloat(ctx.message.text) : parseInt(ctx.message.text);
     if (isNaN(value)) {
-        ctx.reply(state.replies.failure);
+        if (state.replies.failure) ctx.reply(state.replies.failure);
         if (state.allowRetry) ctx.reply("You may retry or /cancel.");
         else {
             ctx.scene.leave();

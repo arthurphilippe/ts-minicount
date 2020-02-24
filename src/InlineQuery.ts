@@ -1,6 +1,6 @@
 import myContext from "./Context";
 import * as telegraf from "telegraf_acp_fork";
-import { InlineQueryResultArticle } from "telegraf/typings/telegram-types";
+import { InlineQueryResultArticle } from "telegraf_acp_fork/typings/telegram-types";
 // import { Crates } from "./Crate";
 
 export default async function(ctx: myContext) {
